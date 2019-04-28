@@ -1,0 +1,1 @@
+*/1 * * * * /bin/ash -c "PID=$(cat /var/run/cert-sync.pid) && [ -n ${PID} -a -d /proc/${PID} ] || /sca/scripts/syncd.php --user cert-sync"

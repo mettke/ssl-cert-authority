@@ -1,0 +1,4 @@
+config/config.ini
+config/cert-sync
+config/cert-sync.pub
+extensions/*.php

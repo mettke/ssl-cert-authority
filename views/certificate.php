@@ -5,6 +5,10 @@ try {
 	require('views/error404.php');
 	die;
 }
+if(!$active_user->admin && $certificate->owner_id != $active_user->id) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['delete_certificate'])) {
 	try {
 		$certificate->delete();
@@ -15,7 +19,7 @@ if(isset($_POST['delete_certificate'])) {
 	} catch(CertificateInUseException $e) {
 		$content = new PageSection('certificate_required');
 	}
-} elseif(isset($_POST['migrate'])) {
+} elseif(isset($_POST['migrate']) && $active_user->admin) {
 	try {
 		$new_certificate_id = $certificate_dir->get_certificate_by_id(trim($_POST['certificate_id']))->id;
 		$profiles = $certificate->list_dependent_profiles(array());
@@ -53,6 +57,7 @@ if(isset($_POST['delete_certificate'])) {
 		}
 	
 		$content = new PageSection('certificate');
+		$content->set('admin', $active_user->admin);
 		$content->set('filter', $filter);
 		$content->set('certificate', $certificate);
 		$content->set('all_certificates', $certificate_dir->list_certificates());

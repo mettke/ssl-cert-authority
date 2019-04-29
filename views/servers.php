@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_server'])) {
 	$hostname = trim($_POST['hostname']);
 	if(!preg_match('|.*\..*\..*|', $hostname)) {

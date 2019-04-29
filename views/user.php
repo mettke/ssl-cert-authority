@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$user = $user_dir->get_user_by_uid($router->vars['username']);
 } catch(UserNotFoundException $e) {
@@ -13,6 +17,11 @@ if(isset($_POST['edit_user'])) {
 		$user->uid = trim($_POST['uid']);
 		$user->name = trim($_POST['name']);
 		$user->email = trim($_POST['email']);
+    if (isset($_POST['admin']) && $_POST['admin'] === 'admin') {
+        $user->admin = 1;
+    } else {
+        $user->admin = 0;
+    }
 	}
 	try {
 		$user->update();
@@ -38,10 +47,17 @@ if(isset($_POST['edit_user'])) {
 		echo $page->generate();
 		exit;
     } else {
-		$content = new PageSection('user');
-		$content->set('user', $user);
-		$content->set('log', $user->get_log());
-		$head = '<link rel="alternate" type="application/json" href="'.urlencode($router->vars['username']).'/format.json" title="JSON for this page">'."\n";
+			$defaults = array();
+			$defaults['name'] = '';
+			$defaults['serial'] = '';
+			$filter = simplify_search($defaults, $_GET);
+
+			$content = new PageSection('user');
+			$content->set('user', $user);
+			$content->set('filter', $filter);
+			$content->set('log', $user->get_log());
+			$content->set('certificates', $user->list_owned_certificates(array(), $filter));
+			$head = '<link rel="alternate" type="application/json" href="'.urlencode($router->vars['username']).'/format.json" title="JSON for this page">'."\n";
 	}
 }
 

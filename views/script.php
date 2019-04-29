@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$script = $script_dir->get_script_by_name($router->vars['name']);
 } catch(ScriptNotFoundException $e) {

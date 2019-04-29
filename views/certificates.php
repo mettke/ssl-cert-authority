@@ -10,6 +10,7 @@ if(isset($_POST['add_certificate'])) {
     $certificate->private = $private;
     $certificate->cert = $cert;
     $certificate->fullchain = $fullchain;
+    $certificate->owner_id = $active_user->id;
 
     try {
         $certificate_dir->add_certificate($certificate);
@@ -33,6 +34,9 @@ if(isset($_POST['add_certificate'])) {
     $defaults['name'] = '';
     $defaults['serial'] = '';
     $filter = simplify_search($defaults, $_GET);
+    if(!$active_user->admin) {
+        $filter['owner_id'] = $active_user->id;
+    }
 	try {
 		$certificates = $certificate_dir->list_certificates(array(), $filter);
 	} catch(InvalidRegexpException $e) {

@@ -1,9 +1,17 @@
 <h1><span class="glyphicon glyphicon-certificate" title="Certificate"></span> <?php out($this->get('certificate')->name) ?></h1>
+<?php if(!is_null($this->get('certificate')->owner->uid)) { ?>
+<dl>
+	<dt>Owner</dt>
+	<dd><a href="<?php outurl('/users/' . urlencode($this->get('certificate')->owner->uid))?>" class="user"><?php out($this->get('certificate')->owner->uid)?></a></dd>
+</dl>
+<?php } ?>
 <ul class="nav nav-tabs">
 	<li><a href="#view" data-toggle="tab">View</a></li>
-	<li><a href="#usage" data-toggle="tab">Usage</a></li>
-	<li><a href="#log" data-toggle="tab">Log</a></li>
-	<li><a href="#migrate" data-toggle="tab">Migration</a></li>
+	<?php if($this->get('admin')) { ?>
+		<li><a href="#usage" data-toggle="tab">Usage</a></li>
+		<li><a href="#log" data-toggle="tab">Log</a></li>
+		<li><a href="#migrate" data-toggle="tab">Migration</a></li>
+	<?php } ?>
 </ul>
 
 <!-- Tab panes -->

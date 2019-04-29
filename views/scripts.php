@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_script'])) {
     $name = trim($_POST['name']);
     $content = trim($_POST['content']);

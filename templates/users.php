@@ -40,6 +40,7 @@
 				<tr>
 					<th>Username</th>
 					<th>Full name</th>
+					<th>Priviledge</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -47,6 +48,9 @@
 				<tr<?php if(!$user->active) out(' class="text-muted"', ESC_NONE) ?>>
 					<td><a href="<?php outurl('/users/'.urlencode($user->uid))?>" class="user<?php if(!$user->active) out(' text-muted') ?>"><?php out($user->uid)?></a></td>
 					<td><?php out($user->name)?></td>
+					<td>
+					<?php if($user->admin) { ?>Admin<?php } else { ?>User<?php } ?>
+					</td>
 				</tr>
 				<?php } ?>
 			</tbody>
@@ -69,6 +73,7 @@
 				<label for="email">Mail Address</label>
 				<input type="email" id="email" name="email" class="form-control" required>
 			</div>		
+			<input type="checkbox" name="admin" value="admin"> Administrator<br><br>
 			<button type="submit" name="add_user" value="1" class="btn btn-primary">Add user</button>
 		</form>
 	</div>

@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$server = $server_dir->get_server_by_hostname($router->vars['hostname']);
 } catch(ServerNotFoundException $e) {

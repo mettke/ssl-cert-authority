@@ -9,6 +9,21 @@ class Certificate extends Record {
 	protected $table = 'certificate';
 
 	/**
+	* Magic getter method
+	* @param string $field to retrieve
+	* @return mixed data stored in field
+	*/
+	public function &__get($field) {
+		switch($field) {
+		case 'owner':
+			$owner = new User($this->data['owner_id']);
+			return $owner;
+		default:
+			return parent::__get($field);
+		}
+	}
+
+	/**
 	* List all log events for this certificate.
 	* @return array of Event objects
 	*/

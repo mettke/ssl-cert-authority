@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_profile'])) {
     $name = trim($_POST['name']);
     $certificate_id = trim($_POST['certificate_id']);

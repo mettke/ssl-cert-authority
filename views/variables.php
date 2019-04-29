@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$service = $service_dir->get_service_by_name($router->vars['service']);
 } catch(ServiceNotFoundException $e) {

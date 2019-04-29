@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_service'])) {
     $name = trim($_POST['name']);
     $restart_script_id = trim($_POST['restart_script']);

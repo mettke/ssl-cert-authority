@@ -56,7 +56,11 @@ if(!empty($_POST)) {
 $router = new Router;
 foreach($routes as $path => $service) {
 	$public = array_key_exists($path, $public_routes);
-	$router->add_route($path, $service, $public);
+	if($path == "/" && !$active_user->admin) {
+		$router->add_route("/", "certificates", false);
+	} else {
+		$router->add_route($path, $service, $public);
+	}
 }
 $router->handle_request($relative_request_url);
 if(isset($router->view)) {

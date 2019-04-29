@@ -2,31 +2,47 @@
 if(isset($_POST['add_certificate'])) {
     $name = trim($_POST['name']);
     $private = trim($_POST['private']);
+    $password = trim($_POST['password']);
     $cert = trim($_POST['cert']);
     $fullchain = trim($_POST['fullchain']);
     
-    $certificate = new Certificate;
-    $certificate->name = $name;
-    $certificate->private = $private;
-    $certificate->cert = $cert;
-    $certificate->fullchain = $fullchain;
-    $certificate->owner_id = $active_user->id;
-
-    try {
-        $certificate_dir->add_certificate($certificate);
-        $alert = new UserAlert;
-        $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' successfully created.';
-        $alert->escaping = ESC_NONE;
-        $active_user->add_alert($alert);
-        redirect('#add');
-    } catch(CertificateAlreadyExistsException $e) {
-        $alert = new UserAlert;
-        $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' is already known by SSL Cert Authority.';
-        $alert->escaping = ESC_NONE;
-        $alert->class = 'danger';
-        $active_user->add_alert($alert);
-        redirect('#add');
-    } catch(InvalidArgumentException $e) {
+    $private_key = openssl_pkey_get_private('file:///'.$base_path.'/config/cert-sync');
+    if (is_bool($private_key)) {
+        throw new Exception("Missing cert-sync.pub file.");
+    }
+    $password_plain = "";
+    $password = pack('H*', $password);
+    $success = openssl_private_decrypt($password, $password_plain, $private_key);
+    if($success) {
+        $private = cryptoJsAesDecrypt($password_plain, $private);
+        $success = $private != null;
+    }
+    if ($success) {
+        $certificate = new Certificate;
+        $certificate->name = $name;
+        $certificate->private = $private;
+        $certificate->cert = $cert;
+        $certificate->fullchain = $fullchain;
+        $certificate->owner_id = $active_user->id;
+    
+        try {
+            $certificate_dir->add_certificate($certificate);
+            $alert = new UserAlert;
+            $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' successfully created.';
+            $alert->escaping = ESC_NONE;
+            $active_user->add_alert($alert);
+            redirect('#add');
+        } catch(CertificateAlreadyExistsException $e) {
+            $alert = new UserAlert;
+            $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' is already known by SSL Cert Authority.';
+            $alert->escaping = ESC_NONE;
+            $alert->class = 'danger';
+            $active_user->add_alert($alert);
+            redirect('#add');
+        } catch(InvalidArgumentException $e) {
+            $content = new PageSection('certificate_upload_fail');
+        }
+    } else {
         $content = new PageSection('certificate_upload_fail');
     }
 } else {
@@ -53,11 +69,17 @@ if(isset($_POST['add_certificate'])) {
 		echo $page->generate();
 		exit;
     } else {
-    
+        
         $content = new PageSection('certificates');
         $content->set('filter', $filter);
         $content->set('certificates', $certificates);
-		$head = '<link rel="alternate" type="application/json" href="certificates.json" title="JSON for this page">'."\n";
+		$head = '<link rel="alternate" type="application/json" href="certificates.json" title="JSON for this page">\n'.
+            '<script src="rsa/jsbn.js"></script>\n'.
+            '<script src="rsa/prng4.js"></script>\n'.
+            '<script src="rsa/rng.js"></script>\n'.
+            '<script src="rsa/rsa.js"></script>\n'.
+            '<script src="rsa/aes.js"></script>\n'.
+            '<script src="crypt.js"></script>\n';
     }
 }
     

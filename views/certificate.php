@@ -21,7 +21,7 @@ if(isset($_POST['delete_certificate'])) {
 	}
 } elseif(isset($_POST['migrate']) && $active_user->admin) {
 	try {
-		$new_certificate_id = $certificate_dir->get_certificate_by_id(trim($_POST['certificate_id']))->id;
+		$new_certificate_id = $certificate_dir->get_certificate_by_id(getParameterOrDie($_POST, 'certificate_id'))->id;
 		$profiles = $certificate->list_dependent_profiles(array());
 		foreach($profiles as $profile) {
 			$profile->certificate_id = $new_certificate_id;

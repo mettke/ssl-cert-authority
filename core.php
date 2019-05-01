@@ -249,6 +249,35 @@ function cryptoJsAesDecrypt($passphrase, $jsonString){
     return json_decode($data, true);
 }
 
+/**
+ * Helper method to query a parameter from $POST or $GET. 
+ * Will return 422 if a parameter is not available.
+ * @param array $_GET or $_POST array
+ * @param string paramter to query
+ * @return string value of the parameter
+ */
+function getParameterOrDie($method, $parameter) {
+	if(isset($method[$parameter])) {
+		return trim($method[$parameter]);
+	}
+	require('views/error422.php');
+	die;
+}
+
+/**
+ * Helper method to query a parameter from $POST or $GET. 
+ * Will return null if parameter is not set.
+ * @param array $_GET or $_POST array
+ * @param string paramter to query
+ * @return string value of the parameter or null
+ */
+function getOptParameter($method, $parameter) {
+	if(isset($method[$parameter])) {
+		return trim($method[$parameter]);
+	}
+	return null;
+}
+
 class OutputFormatter {
 	public function comment_format($text) {
 		return hesc($text);

@@ -4,14 +4,14 @@ if(!$active_user->admin) {
 	die;
 }
 if(isset($_POST['add_server'])) {
-	$hostname = trim($_POST['hostname']);
+	$hostname = getParameterOrDie($_POST, 'hostname');
 	if(!preg_match('|.*\..*\..*|', $hostname)) {
 		$content = new PageSection('invalid_hostname');
 		$content->set('hostname', $hostname);
 	} else {
 		$server = new Server;
 		$server->hostname = $hostname;
-		$server->port = $_POST['port'];
+		$server->port = getParameterOrDie($_POST, 'port');
 		try {
 			$server_dir->add_server($server);
 			$alert = new UserAlert;

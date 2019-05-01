@@ -1,10 +1,10 @@
 <?php
 if(isset($_POST['add_certificate'])) {
-    $name = trim($_POST['name']);
-    $private = trim($_POST['private']);
-    $password = trim($_POST['password']);
-    $cert = trim($_POST['cert']);
-    $fullchain = trim($_POST['fullchain']);
+    $name = getParameterOrDie($_POST, 'name');
+    $private = getParameterOrDie($_POST, 'private');
+    $password = getParameterOrDie($_POST, 'password');
+    $cert = getParameterOrDie($_POST, 'cert');
+    $fullchain = getParameterOrDie($_POST, 'fullchain');
     
     $private_key = openssl_pkey_get_private('file:///'.$base_path.'/config/cert-sync');
     if (is_bool($private_key)) {
@@ -74,12 +74,12 @@ if(isset($_POST['add_certificate'])) {
         $content->set('filter', $filter);
         $content->set('certificates', $certificates);
 		$head = '<link rel="alternate" type="application/json" href="certificates.json" title="JSON for this page">\n'.
-            '<script src="rsa/jsbn.js"></script>\n'.
-            '<script src="rsa/prng4.js"></script>\n'.
-            '<script src="rsa/rng.js"></script>\n'.
-            '<script src="rsa/rsa.js"></script>\n'.
-            '<script src="rsa/aes.js"></script>\n'.
-            '<script src="crypt.js"></script>\n';
+            '<script defer src="rsa/jsbn.js"></script>\n'.
+            '<script defer src="rsa/prng4.js"></script>\n'.
+            '<script defer src="rsa/rng.js"></script>\n'.
+            '<script defer src="rsa/rsa.js"></script>\n'.
+            '<script defer src="rsa/aes.js"></script>\n'.
+            '<script defer src="crypt.js"></script>\n';
     }
 }
     

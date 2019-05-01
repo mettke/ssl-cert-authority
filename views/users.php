@@ -4,9 +4,9 @@ if(!$active_user->admin) {
 	die;
 }
 if(isset($_POST['add_user'])) {
-    $uid = trim($_POST['uid']);
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
+    $uid = getParameterOrDie($_POST, 'uid');
+    $name = getParameterOrDie($_POST, 'name');
+    $email = getParameterOrDie($_POST, 'email');
     
     $user = new User;
     $user->uid = $uid;

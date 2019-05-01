@@ -11,12 +11,12 @@ try {
 }
 if(isset($_POST['edit_user'])) {
 	if($active_user->auth_realm == 'LDAP' ) {
-		$user->force_disable = $_POST['force_disable'];
+		$user->force_disable = getParameterOrDie($_POST, 'force_disable');
 		$user->get_details_from_ldap();
 	} elseif($active_user->auth_realm == 'local' ) {
-		$user->uid = trim($_POST['uid']);
-		$user->name = trim($_POST['name']);
-		$user->email = trim($_POST['email']);
+		$user->uid = getParameterOrDie($_POST, 'uid');
+		$user->name = getParameterOrDie($_POST, 'name');
+		$user->email = getParameterOrDie($_POST, 'email');
     if (isset($_POST['admin']) && $_POST['admin'] === 'admin') {
         $user->admin = 1;
     } else {

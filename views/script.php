@@ -16,9 +16,9 @@ if(isset($_POST['delete_script'])) {
 	$active_user->add_alert($alert);
 	redirect('/scripts');
 } elseif(isset($_POST['edit_script'])) {
-    $script->name = trim($_POST['name']);
-	$script->content = trim($_POST['content']);
-	$type = trim($_POST['type']);
+    $script->name = getParameterOrDie($_POST, 'name');
+	$script->content = getParameterOrDie($_POST, 'content');
+	$type = getParameterOrDie($_POST, 'type');
 	
     switch($type) {
         case 'restart':

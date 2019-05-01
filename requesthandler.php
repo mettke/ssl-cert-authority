@@ -46,7 +46,7 @@ if(!empty($_POST)) {
 	// Check CSRF token
 	if(isset($_SERVER['HTTP_X_BYPASS_CSRF_PROTECTION']) && $_SERVER['HTTP_X_BYPASS_CSRF_PROTECTION'] == 1) {
 		// This is being called from script, not a web browser
-	} elseif(!$active_user->check_csrf_token($_POST['csrf_token'])) {
+	} elseif(!isset($_POST['csrf_token']) || !$active_user->check_csrf_token($_POST['csrf_token'])) {
 		require('views/csrf.php');
 		die;
 	}

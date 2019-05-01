@@ -22,15 +22,16 @@ if(isset($_POST['sync'])) {
 	$server->trigger_sync();
 	redirect();
 } elseif(isset($_POST['edit_server'])) {
-	$hostname = trim($_POST['hostname']);
+	$hostname = getParameterOrDie($_POST, 'hostname');
 	if(!preg_match('|.*\..*\..*|', $hostname)) {
 		$content = new PageSection('invalid_hostname');
 		$content->set('hostname', $hostname);
 	} else {
 		$options = array();
 		$server->hostname = $hostname;
-		$server->port = $_POST['port'];
-		if($_POST['rsa_key_fingerprint'] == '') $server->rsa_key_fingerprint = null;
+		$server->port = getParameterOrDie($_POST, 'port');
+		$fingerprint = getParameterOrDie($_POST, 'rsa_key_fingerprint');
+		if($fingerprint == '') $server->rsa_key_fingerprint = null;
 		try {
 			$server->update();
 			$alert = new UserAlert;
@@ -50,11 +51,11 @@ if(isset($_POST['sync'])) {
 	redirect('/servers');
 } elseif(isset($_POST['add_note'])) {
 	$note = new ServerNote();
-	$note->note = $_POST['note'];
+	$note->note = getParameterOrDie($_POST, 'note');
 	$server->add_note($note);
 	redirect('#notes');
 } elseif(isset($_POST['delete_note'])) {
-	$note = $server->get_note_by_id($_POST['delete_note']);
+	$note = $server->get_note_by_id(getParameterOrDie($_POST, 'delete_note'));
 	$note->delete();
 	redirect('#notes');
 } else {

@@ -10,9 +10,9 @@ try {
 	die;
 }
 if(isset($_POST['add_variable'])) {
-    $name = trim($_POST['name']);
-	$value = trim($_POST['value']);
-	$description = trim($_POST['description']);
+    $name = getParameterOrDie($_POST, 'name');
+	$value = getParameterOrDie($_POST, 'value');
+	$description = getParameterOrDie($_POST, 'description');
 
     $variable = new ServiceVariable;
     $variable->name = $name;

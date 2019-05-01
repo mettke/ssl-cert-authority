@@ -16,10 +16,10 @@ if(isset($_POST['delete_profile'])) {
 	$active_user->add_alert($alert);
 	redirect('/profiles');
 } elseif(isset($_POST['edit_profile'])) {
-    $profile->name = trim($_POST['name']);
+    $profile->name = getParameterOrDie($_POST, 'name');
 
 	try {
-        $profile->certificate_id = $certificate_dir->get_certificate_by_id(trim($_POST['certificate_id']))->id;
+        $profile->certificate_id = $certificate_dir->get_certificate_by_id(getParameterOrDie($_POST, 'certificate_id'))->id;
         try {
 			$profile->update();
 			$alert = new UserAlert;
@@ -34,7 +34,7 @@ if(isset($_POST['delete_profile'])) {
         $content = new PageSection('certificate_not_found');
     }
 } elseif(isset($_POST['add_servers'])) {
-	$servers_names = preg_split('/[\s,]+/', $_POST['servers'], null, PREG_SPLIT_NO_EMPTY);
+	$servers_names = preg_split('/[\s,]+/', getOptParameter($_POST, 'servers'), null, PREG_SPLIT_NO_EMPTY);
     $servers = array();
     foreach($servers_names as $server_name) {
         $server_name = trim($server_name);
@@ -66,7 +66,7 @@ if(isset($_POST['delete_profile'])) {
     }
 } elseif(isset($_POST['delete_server'])) {
 	try {
-		$server = $server_dir->get_server_by_hostname($_POST['server']);	
+		$server = $server_dir->get_server_by_hostname(getParameterOrDie($_POST, 'server'));	
 		$profile->delete_server($server);
 		$alert = new UserAlert;
 		$alert->content = "Profile saved.";
@@ -77,7 +77,7 @@ if(isset($_POST['delete_profile'])) {
 		$content = new PageSection('server_not_found');
 	}
 } elseif(isset($_POST['add_services'])) {
-    $service_names = preg_split('/[\s,]+/', $_POST['services'], null, PREG_SPLIT_NO_EMPTY);
+    $service_names = preg_split('/[\s,]+/', getOptParameter($_POST, 'services'), null, PREG_SPLIT_NO_EMPTY);
     $services = array();
     foreach($service_names as $service_name) {
         $service_name = trim($service_name);
@@ -109,7 +109,7 @@ if(isset($_POST['delete_profile'])) {
     }
 } elseif(isset($_POST['delete_service'])) {
 	try {
-		$service = $service_dir->get_service_by_name($_POST['service']);	
+		$service = $service_dir->get_service_by_name(getParameterOrDie($_POST, 'service'));	
 		$profile->delete_service($service);
 		$alert = new UserAlert;
 		$alert->content = "Profile saved.";

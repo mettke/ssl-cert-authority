@@ -4,10 +4,10 @@ if(!$active_user->admin) {
 	die;
 }
 if(isset($_POST['add_service'])) {
-    $name = trim($_POST['name']);
-    $restart_script_id = trim($_POST['restart_script']);
-    $status_script_id = trim($_POST['status_script']);
-    $check_script_id = trim($_POST['check_script']);
+    $name = getParameterOrDie($_POST, 'name');
+    $restart_script_id = getParameterOrDie($_POST, 'restart_script');
+    $status_script_id = getParameterOrDie($_POST, 'status_script');
+    $check_script_id = getParameterOrDie($_POST, 'check_script');
 
     $service = new Service;
     $service->name = $name;

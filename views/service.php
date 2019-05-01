@@ -10,9 +10,9 @@ try {
 	die;
 }
 if(isset($_POST['add_variable'])) {
-    $name = trim($_POST['name']);
-	$value = trim($_POST['value']);
-	$description = trim($_POST['description']);
+    $name = getParameterOrDie($_POST, 'name');
+	$value = getParameterOrDie($_POST, 'value');
+	$description = getParameterOrDie($_POST, 'description');
 
     $variable = new ServiceVariable;
     $variable->name = $name;
@@ -43,10 +43,10 @@ if(isset($_POST['add_variable'])) {
 	$active_user->add_alert($alert);
 	redirect('/services');
 } elseif(isset($_POST['edit_service'])) {
-    $service->name = trim($_POST['name']);
-    $restart_script_id = trim($_POST['restart_script']);
-    $status_script_id = trim($_POST['status_script']);
-	$check_script_id = trim($_POST['check_script']);
+    $service->name = getParameterOrDie($_POST, 'name');
+    $restart_script_id = getParameterOrDie($_POST, 'restart_script');
+    $status_script_id = getParameterOrDie($_POST, 'status_script');
+	$check_script_id = getParameterOrDie($_POST, 'check_script');
 	
 	try {
         if(is_numeric($restart_script_id)) {

@@ -229,7 +229,7 @@ function to_hex($data) {
 * @param mixed $jsonString
 * @return mixed
 */
-function cryptoJsAesDecrypt($passphrase, $jsonString){
+function cryptoJsAesDecrypt($passphrase, $jsonString) {
     $jsondata = json_decode($jsonString, true);
     try {
         $salt = hex2bin($jsondata["s"]);

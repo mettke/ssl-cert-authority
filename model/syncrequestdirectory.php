@@ -48,6 +48,14 @@ class SyncRequestDirectory extends DBDirectory {
 		}
 		return $reqs;
 	}
+
+	/**
+	* Delete all pending sync requests for this server.
+	*/
+	public function delete_all_sync_requests() {
+		$stmt = $this->database->prepare("DELETE FROM sync_request");
+		$stmt->execute();
+	}
 }
 
 class SyncRequestNotFoundException extends Exception {}

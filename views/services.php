@@ -34,7 +34,7 @@ if(isset($_POST['add_service'])) {
             $alert->content = 'Service \'<a href="'.rrurl('/services/'.urlencode($service->name)).'" class="alert-link">'.hesc($service->name).'</a>\' successfully created.';
             $alert->escaping = ESC_NONE;
             $active_user->add_alert($alert);
-        } catch(UserAlreadyExistsException $e) {
+        } catch(ServiceAlreadyExistsException $e) {
             $alert = new UserAlert;
             $alert->content = 'Service \'<a href="'.rrurl('/services/'.urlencode($service->name)).'" class="alert-link">'.hesc($service->name).'</a>\' is already known by SSL Cert Authority.';
             $alert->escaping = ESC_NONE;

@@ -10,7 +10,9 @@ header("Content-Security-Policy: default-src 'self'");
 <link rel="stylesheet" href="<?php outurl('/bootstrap/css/bootstrap.min.css')?>">
 <link rel="stylesheet" href="<?php outurl('/style.css?'.filemtime('public_html/style.css'))?>">
 <link rel="icon" href="<?php outurl('/key.png')?>">
-<script src="<?php outurl('/header.js?'.filemtime('public_html/header.js'))?>"></script>
+<script defer src="<?php outurl('/jquery/jquery-3.2.1.min.js')?>"></script>
+<script defer src="<?php outurl('/bootstrap/js/bootstrap.min.js')?>"></script>
+<script defer src="<?php outurl('/extra.js?'.filemtime('public_html/extra.js'))?>"></script>
 <?php out($this->get('head'), ESC_NONE) ?>
 <div id="wrap">
 <a href="#content" class="sr-only">Skip to main content</a>
@@ -55,6 +57,3 @@ header("Content-Security-Policy: default-src 'self'");
 		<?php } ?>
 	</div>
 </div>
-<script src="<?php outurl('/jquery/jquery-3.2.1.min.js')?>"></script>
-<script src="<?php outurl('/bootstrap/js/bootstrap.min.js')?>"></script>
-<script src="<?php outurl('/extra.js?'.filemtime('public_html/extra.js'))?>"></script>

@@ -257,15 +257,6 @@ class Server extends Record {
 		$this->sync_status = $status;
 		$this->update();
 	}
-
-	/**
-	* Delete all pending sync requests for this server.
-	*/
-	public function delete_all_sync_requests() {
-		$stmt = $this->database->prepare("DELETE FROM sync_request WHERE server_id = ?");
-		$stmt->bind_param('d', $this->id);
-		$stmt->execute();
-	}
 }
 
 class ServerNoteNotFoundException extends Exception {}

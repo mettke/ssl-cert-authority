@@ -123,6 +123,7 @@ Mandatory arguments to long options are mandatory for short options too.
 function sync_server($id) {
 	global $config;
 	global $server_dir;
+	global $sync_request_dir;
 
 	$certdir = '/var/local/cert-sync';
 
@@ -138,7 +139,7 @@ function sync_server($id) {
 	if(count($matching_servers) > 1) {
 		echo date('c')." {$hostname}: Multiple hosts with same IP address.\n";
 		$server->sync_report('sync failure', 'Multiple hosts with same IP address');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		return;
 	}
 
@@ -151,7 +152,7 @@ function sync_server($id) {
 	} catch(Exception $e) {
 		echo date('c')." {$hostname}: Failed to connect.\n".$e;
 		$server->sync_report('sync failure', 'SSH connection failed');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		return;
 	}
 
@@ -164,7 +165,7 @@ function sync_server($id) {
 	} catch(Exception $e) {
 		echo date('c')." {$hostname}: Unable to parse host key.\n";
 		$server->sync_report('sync failure', 'SSH host key not supported');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		return;
 	}
 	
@@ -175,7 +176,7 @@ function sync_server($id) {
 		if(strcmp($server->rsa_key_fingerprint, $fingerprint) !== 0) {
 			echo date('c')." {$hostname}: RSA key validation failed.\n";
 			$server->sync_report('sync failure', 'SSH host key verification failed');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			return;
 		}
 	}
@@ -184,7 +185,7 @@ function sync_server($id) {
 		if(count($matching_servers) > 1) {
 			echo date('c')." {$hostname}: Multiple hosts with same host key.\n";
 			$server->sync_report('sync failure', 'Multiple hosts with same host key');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			return;
 		}
 	}
@@ -199,7 +200,7 @@ function sync_server($id) {
 	} else {
 		echo date('c')." {$hostname}: Public key authentication failed.\n";
 		$server->sync_report('sync failure', 'SSH authentication failed');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		return;
 	}
 
@@ -207,7 +208,7 @@ function sync_server($id) {
 	if(is_bool($ssh->getExitStatus()) || $ssh->getExitStatus() != 0) {
 		echo date('c')." {$hostname}: Cert directory does not exist.\n";
 		$server->sync_report('sync failure', 'Cert directory does not exist');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 	}
 
 	// From this point on, catch SIGTERM and ignore. SIGINT or SIGKILL is required to stop, so timeout wrapper won't
@@ -229,7 +230,7 @@ function sync_server($id) {
 					// 3+ = Abort if file does not exist
 					echo date('c')." {$hostname}: Hostnames file missing.\n";
 					$server->sync_report('sync failure', 'Hostnames file missing');
-					$server->delete_all_sync_requests();
+					$sync_request_dir->delete_all_sync_requests();
 					return;
 				} else {
 					$allowed_hostnames = null;
@@ -243,14 +244,14 @@ function sync_server($id) {
 			} catch(ErrorException $e) {
 				echo date('c')." {$hostname}: Cannot execute hostname -f.\n";
 				$server->sync_report('sync failure', 'Cannot execute hostname -f');
-				$server->delete_all_sync_requests();
+				$sync_request_dir->delete_all_sync_requests();
 				return;
 			}
 		}
 		if(!in_array($hostname, $allowed_hostnames)) {
 			echo date('c')." {$hostname}: Hostname check failed (allowed: ".implode(", ", $allowed_hostnames).").\n";
 			$server->sync_report('sync failure', 'Hostname check failed');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			return;
 		}
 	}
@@ -285,7 +286,7 @@ function sync_server($id) {
 				return "export ".escapeshellcmd($variable->name)."=".escapeshellarg($variable->value);
 			},$service->list_variables());
 
-			$variables[$service->name] = implode('\n', $vars);
+			$variables[$service->name] = implode(PHP_EOL, $vars);
 
 			$restart_script = $service->restart_script;
 			if($restart_script->name != "") {
@@ -368,6 +369,7 @@ function sync_server($id) {
 }
 
 function file_sync($ssh, $scp, $hostname, $server, $certdir, $folder, $files) {
+	global $sync_request_dir;
 	$ssh->exec('/usr/bin/env test -d ' . $certdir . "/$folder");
 	if(is_bool($ssh->getExitStatus()) || $ssh->getExitStatus() != 0) {			
 		try {		
@@ -378,7 +380,7 @@ function file_sync($ssh, $scp, $hostname, $server, $certdir, $folder, $files) {
 		if(!$success) {
 			echo date('c')." {$hostname}: Cannot execute mkdir.\n";
 			$server->sync_report('sync failure', 'Cannot execute mkdir');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			exit(0);
 		}
 	}
@@ -402,7 +404,7 @@ function file_sync($ssh, $scp, $hostname, $server, $certdir, $folder, $files) {
 	if(!$success) {
 		echo date('c')." {$hostname}: Cannot execute sha1sum.\n";
 		$server->sync_report('sync failure', 'Cannot execute sha1sum');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		exit(0);
 	}
 
@@ -469,6 +471,7 @@ function file_sync($ssh, $scp, $hostname, $server, $certdir, $folder, $files) {
 }
 
 function variable_sync($ssh, $scp, $hostname, $server, $certdir, $variables) {
+	global $sync_request_dir;
 	$ssh->exec('/usr/bin/env test -d ' . $certdir . "/variable");
 	if(is_bool($ssh->getExitStatus()) || $ssh->getExitStatus() != 0) {			
 		try {		
@@ -479,7 +482,7 @@ function variable_sync($ssh, $scp, $hostname, $server, $certdir, $variables) {
 		if(!$success) {
 			echo date('c')." {$hostname}: Cannot execute mkdir.\n";
 			$server->sync_report('sync failure', 'Cannot execute mkdir');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			exit(0);
 		}
 	}
@@ -503,7 +506,7 @@ function variable_sync($ssh, $scp, $hostname, $server, $certdir, $variables) {
 	if(!$success) {
 		echo date('c')." {$hostname}: Cannot execute sha1sum.\n";
 		$server->sync_report('sync failure', 'Cannot execute sha1sum');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		exit(0);
 	}
 
@@ -570,6 +573,7 @@ function variable_sync($ssh, $scp, $hostname, $server, $certdir, $variables) {
 }
 
 function profile_sync($ssh, $hostname, $server, $certdir, $profiles) {
+	global $sync_request_dir;
 	$ssh->exec('/usr/bin/env test -d ' . $certdir . "/profile");
 	if(is_bool($ssh->getExitStatus()) || $ssh->getExitStatus() != 0) {			
 		try {		
@@ -580,7 +584,7 @@ function profile_sync($ssh, $hostname, $server, $certdir, $profiles) {
 		if(!$success) {
 			echo date('c')." {$hostname}: Cannot execute mkdir.\n";
 			$server->sync_report('sync failure', 'Cannot execute mkdir');
-			$server->delete_all_sync_requests();
+			$sync_request_dir->delete_all_sync_requests();
 			exit(0);
 		}
 	}
@@ -599,7 +603,7 @@ function profile_sync($ssh, $hostname, $server, $certdir, $profiles) {
 	if(!$success) {
 		echo date('c')." {$hostname}: Cannot execute ls.\n";
 		$server->sync_report('sync failure', 'Cannot execute ls');
-		$server->delete_all_sync_requests();
+		$sync_request_dir->delete_all_sync_requests();
 		exit(0);
 	}
 
@@ -649,6 +653,7 @@ function profile_sync($ssh, $hostname, $server, $certdir, $profiles) {
 }
 
 function restart_services($ssh, $hostname, $server, $certdir, $services) {
+	global $sync_request_dir;
 	foreach($services as $service) {
 		echo date('c')." {$hostname}: Restarting service {$service->name}\n";
 
@@ -666,7 +671,7 @@ function restart_services($ssh, $hostname, $server, $certdir, $services) {
 			if(!$success) {
 				echo date('c')." {$hostname}: Cannot execute restart script of $service->name.\n";
 				$server->sync_report('sync failure', 'Failed while executing restart script of '.$service->name);
-				$server->delete_all_sync_requests();
+				$sync_request_dir->delete_all_sync_requests();
 				exit(0);
 			}
 			sleep(1);
@@ -686,7 +691,7 @@ function restart_services($ssh, $hostname, $server, $certdir, $services) {
 			if(!$success) {
 				echo date('c')." {$hostname}: Cannot execute status script of $service->name.\n";
 				$server->sync_report('sync failure', 'Failed while executing status script of '.$service->name);
-				$server->delete_all_sync_requests();
+				$sync_request_dir->delete_all_sync_requests();
 				exit(0);
 			}
 		}
@@ -704,14 +709,14 @@ function restart_services($ssh, $hostname, $server, $certdir, $services) {
 				if($result != $service->cert_serial) {
 					echo date('c')." {$hostname}: Check script returned incorrect certificate serial: $result\n";
 					$server->sync_report('sync failure', 'Check script returned incorrect certificate serial');
-					$server->delete_all_sync_requests();
+					$sync_request_dir->delete_all_sync_requests();
 					exit(0);
 				}
 			} catch(ErrorException $e) {}
 			if(!$success) {
 				echo date('c')." {$hostname}: Cannot execute check script of $service->name.\n";
 				$server->sync_report('sync failure', 'Cannot execute check script of '.$service->name);
-				$server->delete_all_sync_requests();
+				$sync_request_dir->delete_all_sync_requests();
 				exit(0);
 			}			
 		}

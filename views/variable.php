@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$service = $service_dir->get_service_by_name($router->vars['service']);
 	$variable = $service->get_variable_by_name($router->vars['name']);
@@ -13,9 +17,9 @@ if (isset($_POST['delete_variable'])) {
 	$active_user->add_alert($alert);
 	redirect('/services/'.urlencode($service->name));
 } elseif (isset($_POST['edit_variable'])) {
-    $variable->name = trim($_POST['name']);
-	$variable->value = trim($_POST['value']);
-	$description = trim($_POST['description']);
+    $variable->name = getParameterOrDie($_POST, 'name');
+	$variable->value = getParameterOrDie($_POST, 'value');
+	$description = getParameterOrDie($_POST, 'description');
 	if(isset($description)) {
 		$variable->description = $description;
 	} else {

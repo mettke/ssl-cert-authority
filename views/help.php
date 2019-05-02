@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 $content = new PageSection('help');
 if(file_exists('config/cert-sync.pub')) {
 	$content->set('cert-sync-pubkey', file_get_contents('config/cert-sync.pub'));

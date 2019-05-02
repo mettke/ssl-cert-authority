@@ -11,8 +11,8 @@ class CertificateDirectory extends DBDirectory {
 		global $event_dir;
 		$certificate->get_openssl_info();
 		try {
-			$stmt = $this->database->prepare("INSERT INTO certificate SET name = ?, private = ?, cert = ?, fullchain = ?, serial = ?, expiration = ?");
-			$stmt->bind_param('ssssss', $certificate->name, $certificate->private, $certificate->cert, $certificate->fullchain, $certificate->serial, $certificate->expiration);
+			$stmt = $this->database->prepare("INSERT INTO certificate SET name = ?, private = ?, cert = ?, fullchain = ?, serial = ?, expiration = ?, owner_id = ?");
+			$stmt->bind_param('ssssssd', $certificate->name, $certificate->private, $certificate->cert, $certificate->fullchain, $certificate->serial, $certificate->expiration, $certificate->owner_id);
 			$stmt->execute();
 			$certificate->id = $stmt->insert_id;
 			$stmt->close();
@@ -91,6 +91,11 @@ class CertificateDirectory extends DBDirectory {
 					$where[] = "certificate.serial REGEXP ?";
 					$bind[0] = $bind[0] . "s";
 					$bind[] = $this->database->escape_string($value);
+					break;
+				case 'owner_id':
+					$where[] = "certificate.owner_id = ?";
+					$bind[0] = $bind[0] . "d";
+					$bind[] = $value;
 					break;
 				}
 			}

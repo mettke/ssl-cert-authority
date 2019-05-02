@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$service = $service_dir->get_service_by_name($router->vars['service']);
 } catch(ServiceNotFoundException $e) {
@@ -6,9 +10,9 @@ try {
 	die;
 }
 if(isset($_POST['add_variable'])) {
-    $name = trim($_POST['name']);
-	$value = trim($_POST['value']);
-	$description = trim($_POST['description']);
+    $name = getParameterOrDie($_POST, 'name');
+	$value = getParameterOrDie($_POST, 'value');
+	$description = getParameterOrDie($_POST, 'description');
 
     $variable = new ServiceVariable;
     $variable->name = $name;

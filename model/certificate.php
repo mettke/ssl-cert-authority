@@ -9,6 +9,21 @@ class Certificate extends Record {
 	protected $table = 'certificate';
 
 	/**
+	* Magic getter method
+	* @param string $field to retrieve
+	* @return mixed data stored in field
+	*/
+	public function &__get($field) {
+		switch($field) {
+		case 'owner':
+			$owner = new User($this->data['owner_id']);
+			return $owner;
+		default:
+			return parent::__get($field);
+		}
+	}
+
+	/**
 	* List all log events for this certificate.
 	* @return array of Event objects
 	*/
@@ -71,21 +86,21 @@ class Certificate extends Record {
 		fclose($cert_file);
 		exec('openssl x509 -noout -serial -in '.escapeshellarg($cert_filename).' 2>/dev/null', $serial);
 		exec('openssl x509 -noout -enddate -in '.escapeshellarg($cert_filename).' 2>/dev/null', $enddate);
-		exec('openssl x509 -noout -modulus -in '.escapeshellarg($cert_filename).' 2>/dev/null | openssl sha1', $cert_modulus);
+		exec('openssl x509 -pubkey -noout -in '.escapeshellarg($cert_filename).' 2>/dev/null | openssl sha1', $cert_modulus);
 		unlink($cert_filename);
 
 		$fullchain_filename = tempnam('/tmp', 'fullchain-test-');
 		$fullchain_file = fopen($fullchain_filename, 'w');
 		fwrite($fullchain_file, $this->fullchain);
 		fclose($fullchain_file);
-		exec('openssl x509 -noout -modulus -in '.escapeshellarg($fullchain_filename).' 2>/dev/null | openssl sha1', $fullchain_modulus);		
+		exec('openssl x509 -pubkey -noout -in '.escapeshellarg($fullchain_filename).' 2>/dev/null | openssl sha1', $fullchain_modulus);		
 		unlink($fullchain_filename);
 
 		$private_filename = tempnam('/tmp', 'private-test-');
 		$private_file = fopen($private_filename, 'w');
 		fwrite($private_file, $this->private);
 		fclose($private_file);
-		exec('openssl rsa -noout -modulus -in '.escapeshellarg($private_filename).' 2>/dev/null | openssl sha1', $private_modulus);		
+		exec('openssl pkey -pubout -in '.escapeshellarg($private_filename).' 2>/dev/null | openssl sha1', $private_modulus);		
 		unlink($private_filename);
 
 		if(empty($cert_modulus) || $cert_modulus != $fullchain_modulus || $fullchain_modulus != $private_modulus) {

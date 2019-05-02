@@ -68,6 +68,10 @@
 				<textarea id="private" name="private" cols="40" rows="5" class="form-control" required></textarea>
 			</div>
 			<div class="form-group">
+				<label for="password">Password (Encryption requires JavaScript)</label>
+				<textarea readonly id="password" name="password" cols="40" rows="5" class="form-control"></textarea>
+			</div>
+			<div class="form-group">
 				<label for="cert">Cert (PEM Format)</label>
 				<textarea id="cert" name="cert" cols="40" rows="5" class="form-control" required></textarea>
 			</div>

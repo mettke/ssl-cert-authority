@@ -142,12 +142,8 @@ class User extends Record {
 		$attributes[] = $config['ldap']['user_id'];
 		$attributes[] = $config['ldap']['user_name'];
 		$attributes[] = $config['ldap']['user_email'];
-		$filter = $config['ldap']['filter'];
-		if(empty($filter)) {
-			$filter = LDAP::escape($config['ldap']['user_id']).'='.LDAP::escape($this->uid);
-		} else {
-			$filter = "(&(".LDAP::escape($config['ldap']['user_id']).'='.LDAP::escape($this->uid).")$filter)";
-		}
+		$attributes[] = $config['ldap']['group_member_value'];
+		$filter = LDAP::escape($config['ldap']['user_id']).'='.LDAP::escape($this->uid);
 		if(isset($config['ldap']['user_active'])) {
 			$attributes[] = $config['ldap']['user_active'];
 		}
@@ -167,8 +163,65 @@ class User extends Record {
 			} else {
 				$this->active = 1;
 			}
+			$this->admin = 0;
+			$group_member = $ldapuser[strtolower($config['ldap']['group_member_value'])];
+			$this->ldapgroups = $this->ldap->search($config['ldap']['dn_group'], LDAP::escape($config['ldap']['group_member']).'='.LDAP::escape($group_member), array('cn'));
+			foreach($this->ldapgroups as $ldapgroup) {
+				if($ldapgroup['cn'] == $config['ldap']['admin_group_cn']) $this->admin = 1;
+			}
 		} else {
 			throw new UserNotFoundException('User does not exist.');
+		}
+	}
+
+		/**
+	* List all certificates associated with this user.
+	* @param array $include list of extra data to include in response - currently unused
+	* @param array $filter list of field/value pairs to filter results on
+	* @return array of Certificate objects
+	*/
+	public function list_owned_certificates($include = array(), $filter = array()) {
+		// WARNING: The search query is not parameterized - be sure to properly escape all input
+		$fields = array("certificate.*");
+		$joins = array();
+		$where = array("certificate.owner_id = ?");
+		$bind = array("d", $this->id);
+		foreach($filter as $field => $value) {
+			if($value) {
+				switch($field) {
+				case 'name':
+					$where[] = "certificate.name REGEXP ?";
+					$bind[0] = $bind[0] . "s";
+					$bind[] = $this->database->escape_string($value);
+					break;
+				}
+			}
+		}
+		try {
+			$stmt = $this->database->prepare("
+				SELECT ".implode(", ", $fields)."
+				FROM certificate ".implode(" ", $joins)."
+				".(count($where) == 0 ? "" : "WHERE (".implode(") AND (", $where).")")."
+				GROUP BY certificate.id
+				ORDER BY certificate.name
+			");
+			if(count($bind) > 1) {
+				$stmt->bind_param(...$bind);
+			}
+			$stmt->execute();
+			$result = $stmt->get_result();
+			$services = array();
+			while($row = $result->fetch_assoc()) {
+				$services[] = new Service($row['id'], $row);
+			}
+			$stmt->close();
+			return $services;
+		} catch(mysqli_sql_exception $e) {
+			if($e->getCode() == 1139) {
+				throw new InvalidRegexpException;
+			} else {
+				throw $e;
+			}
 		}
 	}
 }

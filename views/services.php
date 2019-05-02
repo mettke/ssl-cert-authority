@@ -1,9 +1,13 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_service'])) {
-    $name = trim($_POST['name']);
-    $restart_script_id = trim($_POST['restart_script']);
-    $status_script_id = trim($_POST['status_script']);
-    $check_script_id = trim($_POST['check_script']);
+    $name = getParameterOrDie($_POST, 'name');
+    $restart_script_id = getParameterOrDie($_POST, 'restart_script');
+    $status_script_id = getParameterOrDie($_POST, 'status_script');
+    $check_script_id = getParameterOrDie($_POST, 'check_script');
 
     $service = new Service;
     $service->name = $name;
@@ -30,7 +34,7 @@ if(isset($_POST['add_service'])) {
             $alert->content = 'Service \'<a href="'.rrurl('/services/'.urlencode($service->name)).'" class="alert-link">'.hesc($service->name).'</a>\' successfully created.';
             $alert->escaping = ESC_NONE;
             $active_user->add_alert($alert);
-        } catch(UserAlreadyExistsException $e) {
+        } catch(ServiceAlreadyExistsException $e) {
             $alert = new UserAlert;
             $alert->content = 'Service \'<a href="'.rrurl('/services/'.urlencode($service->name)).'" class="alert-link">'.hesc($service->name).'</a>\' is already known by SSL Cert Authority.';
             $alert->escaping = ESC_NONE;

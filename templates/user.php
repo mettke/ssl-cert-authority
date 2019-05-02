@@ -5,6 +5,7 @@
 </dl>
 <ul class="nav nav-tabs">
 	<li><a href="#view" data-toggle="tab">View</a></li>
+	<li><a href="#certificates" data-toggle="tab">Certificates</a></li>
 	<li><a href="#log" data-toggle="tab">Log</a></li>
 	<?php if (($this->get('user')->auth_realm == 'local' && $this->get('user')->uid != 'cert-sync') || $this->get('user')->auth_realm == 'LDAP') { ?>
 		<li><a href="#settings" data-toggle="tab">Settings</a></li>
@@ -23,6 +24,55 @@
 			<dt>Mail Address</dt>
 			<dd><?php out($this->get('user')->email) ?></dd>
 		</dl>
+	</div>
+
+	<div class="tab-pane fade" id="certificates">
+		<h2 class="sr-only">Certificate list</h2>
+		<div class="panel-group">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">
+						Filter options
+					</h3>
+				</div>
+				<div class="panel-body">
+					<form>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="form-group">
+									<label for="name-search">Name (<a href="https://mariadb.com/kb/en/mariadb/regular-expressions-overview/">regexp</a>)</label>
+									<input type="text" id="name-search" name="name" class="form-control" value="<?php out($this->get('filter')['name'])?>" autofocus>
+								</div>
+								<div class="form-group">
+									<label for="serial-search">Serial (<a href="https://mariadb.com/kb/en/mariadb/regular-expressions-overview/">regexp</a>)</label>
+									<input type="text" id="serial-search" name="serial" class="form-control" value="<?php out($this->get('filter')['serial'])?>">
+								</div>
+							</div>
+						</div>
+						<button type="submit" class="btn btn-primary">Display results</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<p><?php $total = count($this->get('certificates')); out(number_format($total).' certificate'.($total == 1 ? '' : 's').' found')?></p>
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Serial</th>
+					<th>Expiration</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach($this->get('certificates') as $certificate) { ?>
+				<tr>
+					<td><a href="<?php outurl('/certificates/'.urlencode($certificate->name))?>" class="certificate"><?php out($certificate->name)?></a></td>
+					<td><?php out($certificate->serial)?></td>
+					<td><?php out($certificate->expiration)?></td>
+				</tr>
+				<?php } ?>
+			</tbody>
+		</table>
 	</div>
 	
 	<div class="tab-pane fade" id="log">
@@ -72,6 +122,7 @@
 						<label for="email">Mail Address</label>
 						<input type="email" id="email" name="email" value="<?php out($this->get('user')->email) ?>" class="form-control" required>
 					</div>
+					<input type="checkbox" name="admin" value="admin" <?php if($this->get('user')->admin) { ?>checked<?php } ?>> Administrator<br><br>
 					<button type="submit" name="edit_user" value="1" class="btn btn-primary">Edit user</button>
 					<button type="submit" name="delete_user" value="1" class="btn btn-primary">Delete user</button>
 				</form>

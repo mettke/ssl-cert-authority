@@ -11,16 +11,20 @@ class PageSection {
 		$this->template = $template;
 		$this->data = new StdClass;
 		$this->data->menu_items = array();
-		$this->data->menu_items['/profiles'] = 'Profiles';
-		$this->data->menu_items['/servers'] = 'Servers';
-		$this->data->menu_items['/certificates'] = 'Certificates';
-		$this->data->menu_items['/services'] = 'Services';
-		$this->data->menu_items['/scripts'] = 'Scripts';
-		$this->data->menu_items['/users'] = 'Users';
 		if($active_user) {
-			$this->data->menu_items['/activity'] = 'Activity';
+			if($active_user->admin) {
+				$this->data->menu_items['/profiles'] = 'Profiles';
+				$this->data->menu_items['/servers'] = 'Servers';
+			}
+			$this->data->menu_items['/certificates'] = 'Certificates';
+			if($active_user->admin) {
+				$this->data->menu_items['/services'] = 'Services';
+				$this->data->menu_items['/scripts'] = 'Scripts';
+				$this->data->menu_items['/users'] = 'Users';
+				$this->data->menu_items['/activity'] = 'Activity';
+				$this->data->menu_items['/help'] = 'Help';
+			}
 		}
-		$this->data->menu_items['/help'] = 'Help';
 		$this->data->relative_request_url = $relative_request_url;
 		$this->data->active_user = $active_user;
 		$this->data->web_config = $config['web'];

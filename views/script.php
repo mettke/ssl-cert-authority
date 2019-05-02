@@ -1,4 +1,8 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 try {
 	$script = $script_dir->get_script_by_name($router->vars['name']);
 } catch(ScriptNotFoundException $e) {
@@ -12,9 +16,9 @@ if(isset($_POST['delete_script'])) {
 	$active_user->add_alert($alert);
 	redirect('/scripts');
 } elseif(isset($_POST['edit_script'])) {
-    $script->name = trim($_POST['name']);
-	$script->content = trim($_POST['content']);
-	$type = trim($_POST['type']);
+    $script->name = getParameterOrDie($_POST, 'name');
+	$script->content = getParameterOrDie($_POST, 'content');
+	$type = getParameterOrDie($_POST, 'type');
 	
     switch($type) {
         case 'restart':

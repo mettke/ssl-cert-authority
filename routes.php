@@ -6,6 +6,7 @@ $routes = array(
 	'/certificates.{format}' => 'certificates',
 	'/certificates/{name}' => 'certificate',
 	'/certificates/{name}/format.{format}' => 'certificate',
+	'/crypt.js' => 'crypt',
 	'/help' => 'help',
 	'/profiles' => 'profiles',
 	'/profiles.{format}' => 'profiles',

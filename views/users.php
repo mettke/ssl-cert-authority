@@ -1,8 +1,12 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_user'])) {
-    $uid = trim($_POST['uid']);
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
+    $uid = getParameterOrDie($_POST, 'uid');
+    $name = getParameterOrDie($_POST, 'name');
+    $email = getParameterOrDie($_POST, 'email');
     
     $user = new User;
     $user->uid = $uid;
@@ -10,6 +14,11 @@ if(isset($_POST['add_user'])) {
     $user->email = $email;
     $user->auth_realm = 'local';
     $user->active = 1;
+    if (isset($_POST['admin']) && $_POST['admin'] === 'admin') {
+        $user->admin = 1;
+    } else {
+        $user->admin = 0;
+    }
 
     try {
         $user_dir->add_user($user);

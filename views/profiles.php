@@ -1,12 +1,16 @@
 <?php
+if(!$active_user->admin) {
+	require('views/error403.php');
+	die;
+}
 if(isset($_POST['add_profile'])) {
-    $name = trim($_POST['name']);
-    $certificate_id = trim($_POST['certificate_id']);
+    $name = getParameterOrDie($_POST, 'name');
+    $certificate_id = getParameterOrDie($_POST, 'certificate_id');
 
     $profile = new Profile;
     $profile->name = $name;
 
-    $servers_names = preg_split('/[\s,]+/', $_POST['servers'], null, PREG_SPLIT_NO_EMPTY);
+    $servers_names = preg_split('/[\s,]+/', getOptParameter($_POST, 'servers'), null, PREG_SPLIT_NO_EMPTY);
     $servers = array();
     foreach($servers_names as $server_name) {
         $server_name = trim($server_name);
@@ -21,7 +25,7 @@ if(isset($_POST['add_profile'])) {
         }
     }
 
-    $service_names = preg_split('/[\s,]+/', $_POST['services'], null, PREG_SPLIT_NO_EMPTY);
+    $service_names = preg_split('/[\s,]+/', getOptParameter($_POST, 'services'), null, PREG_SPLIT_NO_EMPTY);
     $services = array();
     foreach($service_names as $service_name) {
         $service_name = trim($service_name);

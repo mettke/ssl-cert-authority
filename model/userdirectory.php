@@ -26,8 +26,8 @@ class UserDirectory extends DBDirectory {
 	public function add_user(User $user) {
 		global $event_dir;
 		try {
-			$stmt = $this->database->prepare("INSERT INTO user SET uid = ?, name = ?, email = ?, active = ?, auth_realm = ?");
-			$stmt->bind_param('sssds', $user->uid, $user->name, $user->email, $user->active, $user->auth_realm);
+			$stmt = $this->database->prepare("INSERT INTO user SET uid = ?, name = ?, email = ?, active = ?, auth_realm = ?, admin = ?");
+			$stmt->bind_param('sssdsd', $user->uid, $user->name, $user->email, $user->active, $user->auth_realm, $user->admin);
 			$stmt->execute();
 			$user->id = $stmt->insert_id;
 			$stmt->close();

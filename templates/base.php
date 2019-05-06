@@ -52,7 +52,7 @@ header("Content-Security-Policy: default-src 'self'");
 </div>
 <div id="footer">
 	<div class="container">
-		<p class="text-muted credit"><?php out($web_config['footer'], ESC_NONE)?> (v0.1.0)</p>
+		<p class="text-muted credit"><?php out($web_config['footer'], ESC_NONE)?> (v0.2.1)</p>
 		<?php if($this->get('active_user') && $this->get('active_user')->developer) { ?>
 		<?php } ?>
 	</div>

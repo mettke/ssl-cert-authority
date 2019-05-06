@@ -46,7 +46,7 @@
 									foreach ($options as $value => $label) {
 										$checked = in_array($value, $this->get('filter')['sync_status']) ? ' checked' : '';
 									?>
-									<div class="checkbox"><label><input type="checkbox" name="type[]" value="<?php out($value)?>"<?php out($checked)?>> <?php out($label)?></label></div>
+									<div class="checkbox"><label><input type="checkbox" name="sync_status[]" value="<?php out($value)?>"<?php out($checked)?>> <?php out($label)?></label></div>
 									<?php }?>
 								</div>
 							</div>

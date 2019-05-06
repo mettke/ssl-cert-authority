@@ -38,8 +38,11 @@
                             Script changes will not trigger a restart of services.
                         </li>
                     </ul>
+                    Changes are detected using the check script. If there is no check script, services
+                    always get restarted.<br><br>
+
                     SCA will only display generic error messages as server synchronisation status.
-                    To quickly react to difficultes it is advices to follow the error log file using
+                    To quickly react to difficultes it is adviced to follow the error log file using
                     a command like: <br> <code>tail -f /var/log/cert/sync.log</code><br><br>
                     
                     Note that only one server and service will be deployed/restarted at a time. If a

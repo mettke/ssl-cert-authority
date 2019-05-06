@@ -655,6 +655,23 @@ function profile_sync($ssh, $hostname, $server, $certdir, $profiles) {
 function restart_services($ssh, $hostname, $server, $certdir, $services) {
 	global $sync_request_dir;
 	foreach($services as $service) {
+		$check_script = $service->check_script;
+		if($check_script->name != "") {
+			try {		
+				$success = false;			
+				$result = $ssh->exec('/usr/bin/env sh -c ". '.escapeshellarg("$certdir/variable/$service->name").'; sh '.escapeshellarg("$certdir/script/$check_script->name").'"');
+				$err = $ssh->getStdError();
+				$success = !is_bool($ssh->getExitStatus()) && $ssh->getExitStatus() == 0;
+				if($err != "") {
+					echo date('c')." {$hostname}: check script returned: $err\n";
+				}
+				if("$result" == "$service->cert_serial\n") {
+					echo date('c')." {$hostname}: Service {$service->name} does not require a restart\n";
+					continue;
+				}
+			} catch(ErrorException $e) {}
+		}
+
 		echo date('c')." {$hostname}: Restarting service {$service->name}\n";
 
 		$restart_script = $service->restart_script;
@@ -700,13 +717,13 @@ function restart_services($ssh, $hostname, $server, $certdir, $services) {
 		if($check_script->name != "") {
 			try {		
 				$success = false;			
-				$ssh->exec('/usr/bin/env sh -c ". '.escapeshellarg("$certdir/variable/$service->name").'; sh '.escapeshellarg("$certdir/script/$check_script->name").'"');
+				$result = $ssh->exec('/usr/bin/env sh -c ". '.escapeshellarg("$certdir/variable/$service->name").'; sh '.escapeshellarg("$certdir/script/$check_script->name").'"');
 				$err = $ssh->getStdError();
 				$success = !is_bool($ssh->getExitStatus()) && $ssh->getExitStatus() == 0;
 				if($err != "") {
 					echo date('c')." {$hostname}: check script returned: $err\n";
 				}
-				if($result != $service->cert_serial) {
+				if("$result" != "$service->cert_serial\n") {
 					echo date('c')." {$hostname}: Check script returned incorrect certificate serial: $result\n";
 					$server->sync_report('sync failure', 'Check script returned incorrect certificate serial');
 					$sync_request_dir->delete_all_sync_requests();

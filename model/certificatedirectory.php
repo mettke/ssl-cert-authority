@@ -9,10 +9,12 @@ class CertificateDirectory extends DBDirectory {
 	*/
 	public function add_certificate(Certificate $certificate) {
 		global $event_dir;
-		$certificate->get_openssl_info();
+		if(!$certificate->csr) {
+			$certificate->get_openssl_info();
+		}
 		try {
-			$stmt = $this->database->prepare("INSERT INTO certificate SET name = ?, private = ?, cert = ?, fullchain = ?, serial = ?, expiration = ?, owner_id = ?");
-			$stmt->bind_param('ssssssd', $certificate->name, $certificate->private, $certificate->cert, $certificate->fullchain, $certificate->serial, $certificate->expiration, $certificate->owner_id);
+			$stmt = $this->database->prepare("INSERT INTO certificate SET name = ?, private = ?, cert = ?, fullchain = ?, serial = ?, expiration = ?, owner_id = ?, signing_request = ?, csr = ?");
+			$stmt->bind_param('ssssssdds', $certificate->name, $certificate->private, $certificate->cert, $certificate->fullchain, $certificate->serial, $certificate->expiration, $certificate->owner_id, $certificate->signing_request, $certificate->csr);
 			$stmt->execute();
 			$certificate->id = $stmt->insert_id;
 			$stmt->close();
@@ -80,7 +82,7 @@ class CertificateDirectory extends DBDirectory {
 		$where = array();
 		$bind = array("");
 		foreach($filter as $field => $value) {
-			if($value) {
+			if($value || $value == 0) {
 				switch($field) {
 				case 'name':
 					$where[] = "certificate.name REGEXP ?";
@@ -94,6 +96,11 @@ class CertificateDirectory extends DBDirectory {
 					break;
 				case 'owner_id':
 					$where[] = "certificate.owner_id = ?";
+					$bind[0] = $bind[0] . "d";
+					$bind[] = $value;
+					break;
+				case 'signing_request':
+					$where[] = "certificate.signing_request = ?";
 					$bind[0] = $bind[0] . "d";
 					$bind[] = $value;
 					break;

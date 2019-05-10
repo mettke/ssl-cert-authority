@@ -9,7 +9,34 @@ if(!$active_user->admin && $certificate->owner_id != $active_user->id) {
 	require('views/error403.php');
 	die;
 }
-if(isset($_POST['delete_certificate'])) {
+if(isset($_POST['upload_certificate'])) {
+    $cert = getParameterOrDie($_POST, 'cert');
+    $fullchain = getParameterOrDie($_POST, 'fullchain');
+    
+	$certificate->cert = $cert;
+	$certificate->fullchain = $fullchain;
+	$certificate->signing_request = 0;
+
+	try {
+		$certificate->get_openssl_info();
+		$certificate->update();
+		$alert = new UserAlert;
+		$alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' successfully created.';
+		$alert->escaping = ESC_NONE;
+		$active_user->add_alert($alert);
+		redirect('#view');
+	} catch(CertificateAlreadyExistsException $e) {
+		$alert = new UserAlert;
+		$alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' is already known by SSL Cert Authority.';
+		$alert->escaping = ESC_NONE;
+		$alert->class = 'danger';
+		$active_user->add_alert($alert);
+		redirect('#add');
+	} catch(InvalidArgumentException $e) {
+		$content = new PageSection('certificate_upload_fail');
+	}
+}
+else if(isset($_POST['delete_certificate'])) {
 	try {
 		$certificate->delete();
 		$alert = new UserAlert;
@@ -60,7 +87,7 @@ if(isset($_POST['delete_certificate'])) {
 		$content->set('admin', $active_user->admin);
 		$content->set('filter', $filter);
 		$content->set('certificate', $certificate);
-		$content->set('all_certificates', $certificate_dir->list_certificates());
+		$content->set('all_certificates', $certificate_dir->list_certificates(array(), array("signing_request" => 0)));
 		$content->set('profiles', $profiles);
 		$content->set('log', $certificate->get_log());
 		$head = '<link rel="alternate" type="application/json" href="'.urlencode($router->vars['name']).'/format.json" title="JSON for this page">'."\n";

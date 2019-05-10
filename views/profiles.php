@@ -91,7 +91,7 @@ if(isset($_POST['add_profile'])) {
         $content = new PageSection('profiles');
         $content->set('filter', $filter);
         $content->set('profiles', $profiles);
-        $content->set('all_certificates', $certificate_dir->list_certificates());
+        $content->set('all_certificates', $certificate_dir->list_certificates(array(), array("signing_request" => 0)));
         $content->set('all_servers', $server_dir->list_servers());
         $content->set('all_services', $service_dir->list_services());
 		$head = '<link rel="alternate" type="application/json" href="profiles.json" title="JSON for this page">'."\n";

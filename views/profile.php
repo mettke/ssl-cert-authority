@@ -155,7 +155,7 @@ if(isset($_POST['delete_profile'])) {
 			$content = new PageSection('profile');
 			$content->set('filter', $filter);
 			$content->set('profile', $profile);
-			$content->set('all_certificates', $certificate_dir->list_certificates());
+			$content->set('all_certificates', $certificate_dir->list_certificates(array(), array("signing_request" => 0)));
 			$content->set('all_servers', $server_dir->list_servers());
 			$content->set('all_services', $service_dir->list_services());
 			$content->set('servers', $servers);

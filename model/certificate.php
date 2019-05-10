@@ -103,7 +103,18 @@ class Certificate extends Record {
 		exec('openssl pkey -pubout -in '.escapeshellarg($private_filename).' 2>/dev/null | openssl sha1', $private_modulus);		
 		unlink($private_filename);
 
-		if(empty($cert_modulus) || $cert_modulus != $fullchain_modulus || $fullchain_modulus != $private_modulus) {
+		if(!empty($this->csr)) {
+			$csr_filename = tempnam('/tmp', 'csr-test-');
+			$csr_file = fopen($csr_filename, 'w');
+			fwrite($csr_file, $this->csr);
+			fclose($csr_file);
+			exec('openssl req -pubkey -noout -in '.escapeshellarg($csr_filename).' 2>/dev/null | openssl sha1', $csr_modulus);		
+			unlink($csr_filename);
+		} else {
+			$csr_modulus = $cert_modulus;
+		}
+
+		if(empty($cert_modulus) || $cert_modulus != $fullchain_modulus || $fullchain_modulus != $private_modulus || $private_modulus != $csr_modulus) {
 			throw new InvalidArgumentException("Certificate doesn't look valid");
 		} else if(count($serial) == 1 && count($enddate) == 1 && 
 				preg_match('|^serial=(.*)$|', $serial[0], $matches_fp) &&
@@ -114,6 +125,56 @@ class Certificate extends Record {
 		} else {
 			throw new InvalidArgumentException("Certificate doesn't look valid");
 		}
+	}
+
+	/**
+	* Create Signing Request using openssl
+	*/
+	public function create_openssl_certificate_signing_request($subject, $key_type) {
+		$csr_filename = tempnam('/tmp', 'csr-test-');
+		$private_filename = tempnam('/tmp', 'private-test-');
+
+		switch($key_type) {
+			case 'rsa8192':
+				exec('openssl genrsa -out '.escapeshellarg($private_filename).' 8192');
+				break;
+			case 'rsa4096':
+				exec('openssl genrsa -out '.escapeshellarg($private_filename).' 4096');
+				break;
+			case 'rsa2048':
+				exec('openssl genrsa -out '.escapeshellarg($private_filename).' 2048');
+				break;
+			case 'ecdsa521':
+				exec('openssl ecparam -genkey -name secp521r1 -out '.escapeshellarg($private_filename));
+				break;
+			case 'ecdsa384':
+				exec('openssl ecparam -genkey -name secp384r1 -out '.escapeshellarg($private_filename));
+				break;
+			case 'ecdsa256':
+				exec('openssl ecparam -genkey -name secp256r1 -out '.escapeshellarg($private_filename));
+				break;
+			case 'ed25519':
+				exec('openssl genpkey -algorithm Ed25519 -out '.escapeshellarg($private_filename));
+				break;
+			default:
+				throw new InvalidKeyTypeException();
+				break;
+		}
+		exec('openssl req -new -key '.escapeshellarg($private_filename).' -out '.escapeshellarg($csr_filename).' -subj '.escapeshellarg($subject), $output, $return_var);
+		if($return_var != 0) {
+			throw new InvalidCertificateSubject();
+		}
+
+        $this->private = file_get_contents($private_filename);
+        $this->cert = "";
+        $this->fullchain = "";
+        $this->signing_request = 1;
+		$this->csr = file_get_contents($csr_filename);
+		$this->serial = '';
+		$this->expiration = date('Y-m-d H:i:s', time());
+		
+		unlink($csr_filename);	
+		unlink($private_filename);
 	}
 
 	/**
@@ -168,3 +229,6 @@ class Certificate extends Record {
 	}
 }
 class CertificateInUseException extends Exception {}
+class InvalidKeyTypeException extends Exception {}
+class InvalidCertificateSubject extends Exception {}
+	

@@ -1,0 +1,97 @@
+version: '2.2'
+services:
+  test-nginx:
+    image: alpine
+    command: /bin/ash -c "(id cert-sync || adduser -h /var/local/cert-sync -S -D -s /bin/sh cert-sync) && mkdir -p /var/run/nginx/ && chmod 711 /var/local/cert-sync && cp /key /var/local/cert-sync/cert-sync && chown cert-sync:nogroup /var/local/cert-sync/cert-sync && chmod 644 /var/local/cert-sync/cert-sync && apk add openssh openssl nginx sudo && ssh-keygen -A && sed -i -e '/#StrictModes/ s/.*/StrictModes no/' /etc/ssh/sshd_config && sed -i -e '/AuthorizedKeysFile/ s/.*/AuthorizedKeysFile \/var\/local\/cert-sync\/%u/' /etc/ssh/sshd_config && passwd cert-sync -d test && passwd root -d test && echo 'cert-sync ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /usr/sbin/sshd -D"
+    restart: always
+    expose:
+      - "22"
+    ports:
+      - "8443:8443"
+    depends_on:
+      - sca-php
+    volumes:
+      - ../shared/config-client-cert/cert-sync.pub:/key:ro
+      - ../shared/nginx-demo.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      net:
+        aliases:
+         - nginx.example.com
+
+  test-httpd:
+    image: alpine
+    command: /bin/ash -c "(id cert-sync || adduser -h /var/local/cert-sync -S -D -s /bin/sh cert-sync) && chmod 711 /var/local/cert-sync && cp /key /var/local/cert-sync/cert-sync && chown cert-sync:nogroup /var/local/cert-sync/cert-sync && chmod 644 /var/local/cert-sync/cert-sync && apk add openssh openssl apache2 apache2-ssl sudo && ssh-keygen -A && sed -i -e '/#StrictModes/ s/.*/StrictModes no/' /etc/ssh/sshd_config && sed -i -e '/AuthorizedKeysFile/ s/.*/AuthorizedKeysFile \/var\/local\/cert-sync\/%u/' /etc/ssh/sshd_config && passwd cert-sync -d test && passwd root -d test && echo 'cert-sync ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /usr/sbin/sshd -D"
+    restart: always
+    expose:
+      - "22"
+    ports:
+      - "8444:8444"
+    depends_on:
+      - sca-php
+    volumes:
+      - ../shared/config-client-cert/cert-sync.pub:/key:ro
+      - ../shared/httpd-demo.conf:/etc/apache2/conf.d/demo.conf:ro
+    networks:
+      net:
+        aliases:
+         - httpd.example.com
+
+  mail:
+    image: mwader/postfix-relay
+    restart: always
+    environment:
+    - POSTFIX_myhostname=sca.example.de
+    - POSTFIX_mynetworks=0.0.0.0/0
+    expose:
+      - "25"
+    networks:
+      - net
+
+  sca-db:
+    image: mariadb
+    restart: always
+    environment:
+    - MYSQL_ROOT_PASSWORD=root-password
+    - MYSQL_DATABASE=sca-db
+    - MYSQL_USER=sca-user
+    - MYSQL_PASSWORD=password
+    volumes:
+      - db:/var/lib/mysql:rw
+    networks:
+      - net
+
+  sca-php:
+    build:
+      context: ../../docker
+    restart: always
+    depends_on:
+      - sca-db
+      - mail
+    volumes:
+      - ../../:/sca/:rw
+      - ../shared/config-client-cert/:/sca/config/:rw
+      - ../shared/ssmtp.conf:/etc/ssmtp/ssmtp.conf:ro
+      - html:/public_html:rw
+    networks:
+      - net
+
+  sca:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "443:443"
+    depends_on:
+      - sca-php
+    volumes:
+      - html:/sca/public_html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../shared/config-client-cert/ca.pem:/ca.pem:ro
+      - ../shared/config-client-cert/ca.key:/ca.key:ro
+    networks:
+      - net
+      
+networks:
+  net:
+volumes:
+  html:
+  db:

@@ -1,6 +1,6 @@
 # Example: nginx + htpasswd
 
-This Example shows how to use sca with nginx and ldap using docker.
+This Example shows how to use sca with nginx and htpasswd using docker.
 
 ## Prepare setup
 

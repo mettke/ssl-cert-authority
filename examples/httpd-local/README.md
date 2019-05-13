@@ -1,6 +1,6 @@
 # Example: httpd + htpasswd
 
-This Example shows how to use sca with httpd and ldap using docker.
+This Example shows how to use sca with httpd and htpasswd using docker.
 
 ## Prepare setup
 

@@ -28,6 +28,15 @@ if(isset($_SERVER['PHP_AUTH_USER'])) {
 		require('views/error403.php');
 		die;
 	}
+} else if(isset($_SERVER['X-SSL-CERT-DN'])) {
+	$dn = $_SERVER['X-SSL-CERT-DN'];
+	preg_match('|CN=([^,/]*)|', $dn, $matches);
+	try {
+		$active_user = $user_dir->get_user_by_uid($matches[1]);
+	} catch(UserNotFoundException $ex) {
+		require('views/error403.php');
+		die;
+	}
 } else {
 	throw new Exception("Not logged in.");
 }

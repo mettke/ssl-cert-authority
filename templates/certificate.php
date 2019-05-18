@@ -10,7 +10,11 @@
 	<?php if($this->get('admin')) { ?>
 		<li><a href="#usage" data-toggle="tab">Usage</a></li>
 		<li><a href="#log" data-toggle="tab">Log</a></li>
+		<?php if($this->get('certificate')->signing_request) { ?>
+		<li><a href="#upload" data-toggle="tab">Upload Certificate</a></li>
+		<?php } else { ?>
 		<li><a href="#migrate" data-toggle="tab">Migration</a></li>
+		<?php } ?>
 	<?php } ?>
 </ul>
 
@@ -27,6 +31,8 @@
 			<dd><pre><?php out($this->get('certificate')->cert)?></pre></dd>
 			<dt>Fullchain (PEM Format)</dt>
 			<dd><pre><?php out($this->get('certificate')->fullchain)?></pre></dd>
+			<dt>CSR (PEM Format)</dt>
+			<dd><pre><?php out($this->get('certificate')->csr)?></pre></dd>
 		</dl>
 
 		<form method="post" action="<?php outurl($this->data->relative_request_url) ?>" class="form-horizontal">
@@ -110,6 +116,23 @@
 		</table>
 	</div>
 
+	<?php if($this->get('certificate')->signing_request) { ?>
+	<div class="tab-pane fade" id="upload">
+		<h2 class="sr-only">Upload certificate</h2>
+		<form method="post" action="<?php outurl($this->data->relative_request_url)?>">
+			<?php out($this->get('active_user')->get_csrf_field(), ESC_NONE) ?>
+			<div class="form-group">
+				<label for="cert">Cert (PEM Format)</label>
+				<textarea id="cert" name="cert" cols="40" rows="5" class="form-control" required></textarea>
+			</div>
+			<div class="form-group">
+				<label for="fullchain">Fullchain (PEM Format)</label>
+				<textarea id="fullchain" name="fullchain" cols="40" rows="5" class="form-control" required></textarea>
+			</div>
+			<button type="submit" name="upload_certificate" value="1" class="btn btn-primary">Add certificate</button>
+		</form>
+	</div>
+	<?php } else { ?>
 	<div class="tab-pane fade" id="migrate">
 		<h2 class="sr-only">Migrate</h2>
 		<div class="panel panel-default">
@@ -143,4 +166,5 @@
 			<button type="submit" name="migrate" value="1" class="btn btn-primary">Migrate</button>
 		</form>
 	</div>
+	<?php } ?>
 </div>

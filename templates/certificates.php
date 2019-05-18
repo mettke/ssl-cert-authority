@@ -1,7 +1,8 @@
 <h1>Certificates</h1>
 <ul class="nav nav-tabs">
 	<li><a href="#list" data-toggle="tab">Certificate list</a></li>
-	<li><a href="#add" data-toggle="tab">Add certificate</a></li>
+	<li><a href="#add" data-toggle="tab">Add Signing Request</a></li>
+	<li><a href="#upload" data-toggle="tab">Upload certificate</a></li>
 </ul>
 
 <!-- Tab panes -->
@@ -56,7 +57,35 @@
 	</div>
 
 	<div class="tab-pane fade" id="add">
-		<h2 class="sr-only">Add certificate</h2>
+		<h2 class="sr-only">Add Signing Request</h2>
+		<form method="post" action="<?php outurl($this->data->relative_request_url)?>">
+			<?php out($this->get('active_user')->get_csrf_field(), ESC_NONE) ?>
+			<div class="form-group">
+				<label for="name">Name</label>
+				<input type="text" id="name" name="name" class="form-control" required>
+			</div>
+			<div class="form-group">
+				<label for="subject">Subject</label>
+				<input type="text" id="subject" name="subject" class="form-control" placeholder="/CN=&#60;domain&#62;" required>
+			</div>
+			<div class="form-group">
+				<label for="key_type">Key Type</label>
+				<select id="key_type" name="key_type" class="browser-default custom-select form-control" required>
+					<option value="rsa8192" label="RSA 8192">
+					<option value="rsa4096" label="RSA 4096" selected>
+					<option value="rsa2048" label="RSA 2048">
+					<option value="ecdsa521" label="ECDSA Secp 521">
+					<option value="ecdsa384" label="ECDSA Secp 384">
+					<option value="ecdsa256" label="ECDSA Secp 256">
+					<option value="ed25519" label="EdDSA Ed25519">
+				</select>
+			</div>
+			<button type="submit" name="add_signing_request" value="1" class="btn btn-primary">Add certificate</button>
+		</form>
+	</div>
+
+	<div class="tab-pane fade" id="upload">
+		<h2 class="sr-only">Upload certificate</h2>
 		<form method="post" action="<?php outurl($this->data->relative_request_url)?>">
 			<?php out($this->get('active_user')->get_csrf_field(), ESC_NONE) ?>
 			<div class="form-group">
@@ -79,7 +108,7 @@
 				<label for="fullchain">Fullchain (PEM Format)</label>
 				<textarea id="fullchain" name="fullchain" cols="40" rows="5" class="form-control" required></textarea>
 			</div>
-			<button type="submit" name="add_certificate" value="1" class="btn btn-primary">Add certificate</button>
+			<button type="submit" name="upload_certificate" value="1" class="btn btn-primary">Add certificate</button>
 		</form>
 	</div>
 </div>

@@ -1,5 +1,38 @@
 <?php
-if(isset($_POST['add_certificate'])) {
+if(isset($_POST['add_signing_request'])) {
+    $name = getParameterOrDie($_POST, 'name');
+    $subject = getParameterOrDie($_POST, 'subject');
+    $key_type = getParameterOrDie($_POST, 'key_type');
+
+    $certificate = new Certificate;
+    $certificate->name = $name;
+    $certificate->owner_id = $active_user->id;
+
+    try {
+        $certificate->create_openssl_certificate_signing_request($subject, $key_type);
+        $certificate_dir->add_certificate($certificate);
+        $alert = new UserAlert;
+        $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' successfully created.';
+        $alert->escaping = ESC_NONE;
+        $active_user->add_alert($alert);
+        redirect('#add');
+    } catch(CertificateAlreadyExistsException $e) {
+        $alert = new UserAlert;
+        $alert->content = 'Certificate \'<a href="'.rrurl('/certificates/'.urlencode($certificate->name)).'" class="alert-link">'.hesc($certificate->name).'</a>\' is already known by SSL Cert Authority.';
+        $alert->escaping = ESC_NONE;
+        $alert->class = 'danger';
+        $active_user->add_alert($alert);
+        redirect('#add');
+    } catch(InvalidKeyTypeException $e) {
+        error_log($e);
+        $content = new PageSection('invalid_key_type');
+        $content->set('type', $key_type);
+    } catch(InvalidCertificateSubject $e) {
+        error_log($e);
+        $content = new PageSection('invalid_subject');
+        $content->set('subject', $subject);
+    }
+} else if(isset($_POST['upload_certificate'])) {
     $name = getParameterOrDie($_POST, 'name');
     $private = getParameterOrDie($_POST, 'private');
     $password = getParameterOrDie($_POST, 'password');
@@ -24,6 +57,8 @@ if(isset($_POST['add_certificate'])) {
         $certificate->cert = $cert;
         $certificate->fullchain = $fullchain;
         $certificate->owner_id = $active_user->id;
+        $certificate->signing_request = 0;
+        $certificate->csr = '';
     
         try {
             $certificate_dir->add_certificate($certificate);
